@@ -1,0 +1,66 @@
+---
+title: "MT Regression Analysis"
+output: html_document
+---
+
+Motor Trend Magazine data set that measures various metrics and attributes for 32 automobiles. Using visual exploratory anylitics and the linear regression tool, we find that if a automobile has a manual transmission it achieves 7.24 MPG better than a car with an automatic transmission, all else being equal. After further investigation into other metrics, it is found that vehicle weight and the number of cylinders the egine have are all significant variables. Finally, after recognizing a significant relationship between weight and transmission type, we create an interaction term to remove the effects of multicollinearity. We find that manual transmission cars are 11.939 + (-4.197)*weight more fuel efficient than cars with automatic transmissions, all else being equal. 
+
+Therefore, cars with manual transmission that are lighter and heavy cars with automatic transmission are the most fuel efficient vehicles.
+
+Exploratory Analysis
+
+First I get the descriptive statistics of the data set and do some visual analysis, the visuals can be seen in the Appendix.
+
+The average car in the dat set gets 20.1 miles per gallon, has 6 cylinders, 146.7 horsepower and has an automatic transmission.
+
+```{r}
+library(ggplot2)
+data<-mtcars
+summary(data)
+lmdata<-lm(data$mpg~data$am)
+```
+
+I do a simple linear regression and find that vehicles with a manual transmission get 7.24 MPG all else being equal and it is statisticall significant with a t-value of 4.11. We can leave it here or dig in a little further because the adjusted R-squared statistic is 0.338 which indicates the over 65% of the model is left unexplained.
+
+When I add in vehicle weight and the number of cylinders, which usually are a categorical difference between economy, utility and luxury vehicles, I find that transmission type is no longer significant and that greater the weight and number of cylinders  than lower the MPG. This leads me to believe that transmission type and vehicle weight are confounding variables.
+
+```{r}
+lmstepdata<-lm(data$mpg~data$am+data$wt+data$cyl)
+
+```
+
+
+When we create an interaction variable between weight and transmission type we find that all variables are statistically significant by passing their t-tests.
+
+
+```{r}
+final<-lm(data$mpg~data$am+data$wt+data$cyl+data$wt:data$am)
+```
+
+
+By looking at our residual plots we see that there is no pattern between the residual and fitted values, that there is no major outliers and that the values fall between the 0.5 significance.
+
+Appendix: Figures
+
+```{r}
+boxplot(data$mpg~data$am, xlab="Trans (o=Auto, 1=Manual)", tlab="MPG", main="MPG vs Transmission"
+) 
+```
+
+```{r}
+g<-ggplot(data, aes(x=am, y=mpg))
+g+geom_point()+geom_smooth(method=lm, se=FALSE) +labs(title="Trans vs. MPG")
+
+g<-ggplot(data, aes(x=am, y=wt))
+g+geom_point()+geom_smooth(method=lm, se=FALSE)+ labs(title="Trans vs. Weight")
+
+g1<-ggplot(data, aes(x=wt, y=mpg, colour=am))
+g1+geom_point()+ scale_colour_gradient(low="red")+ geom_smooth(method=lm, se=FALSE) + labs(title="MPG vs. Weight by Trans")
+        
+```
+
+```{r}
+plot(final)
+```
+
+                           
